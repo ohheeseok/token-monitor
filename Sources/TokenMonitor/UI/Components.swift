@@ -25,9 +25,11 @@ struct ProviderIcon: View {
 
     var body: some View {
         Group {
-            if let image = ProviderIcon.appIcon(for: kind) {
+            if let image = ProviderIcon.bundledIcon(for: kind) {
+                Image(nsImage: image).resizable().interpolation(.high)
+            } else if let image = ProviderIcon.appIcon(for: kind) {
                 // macOS app icons carry ~10% transparent margin; scale so the artwork fills the tile
-                // like the drawn OpenRouter tile does.
+                // like the edge-to-edge OpenRouter favicon does.
                 Image(nsImage: image).resizable().interpolation(.high).scaleEffect(1.24)
             } else {
                 Image(systemName: ProviderIcon.symbol(for: kind))
@@ -57,6 +59,19 @@ struct ProviderIcon: View {
             .map { NSWorkspace.shared.icon(forFile: $0.path) }
         cache[kind] = image
         return image
+    }
+
+    /// OpenRouter has no Mac app, so its site favicon (openrouter.ai/favicon/glyph.png) ships with us.
+    static let bundledIcons: [ProviderKind: String] = [.openRouter: "openrouter"]
+
+    /// SwiftPM's `Bundle.module` only looks next to the .app (not in Contents/Resources, where
+    /// bundle.sh puts it) and then falls back to an absolute .build path, so look it up ourselves.
+    static let resources: Bundle? = [Bundle.main.resourceURL, Bundle.main.bundleURL]
+        .compactMap { $0?.appendingPathComponent("TokenMonitor_TokenMonitor.bundle") }
+        .lazy.compactMap { Bundle(url: $0) }.first
+
+    static func bundledIcon(for kind: ProviderKind) -> NSImage? {
+        bundledIcons[kind].flatMap { resources?.image(forResource: $0) }
     }
 
     static func symbol(for kind: ProviderKind) -> String {

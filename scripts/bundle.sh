@@ -15,9 +15,8 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 cp "$BIN_DIR/TokenMonitor" "$APP/Contents/MacOS/TokenMonitor"
 sed "s/BUILD_NUMBER/$(date +%Y%m%d%H%M%S)/" Resources/Info.plist > "$APP/Contents/Info.plist"
-for bundle in "$BIN_DIR"/*.bundle(N); do
-  cp -R "$bundle" "$APP/Contents/Resources/"
-done
+# Only the app's own resources; the test target's fixture bundle sits in the same folder.
+cp -R "$BIN_DIR/TokenMonitor_TokenMonitor.bundle" "$APP/Contents/Resources/"
 [[ -f Resources/AppIcon.icns ]] && cp Resources/AppIcon.icns "$APP/Contents/Resources/"
 
 codesign --force --sign - --timestamp=none "$APP"

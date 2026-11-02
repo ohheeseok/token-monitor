@@ -21,6 +21,7 @@ let package = Package(
         .executableTarget(
             name: "TokenMonitor",
             dependencies: ["TokenMonitorCore"],
+            resources: [.copy("Resources/openrouter.png")],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .executableTarget(
