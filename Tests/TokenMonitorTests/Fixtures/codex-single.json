@@ -1,0 +1,8 @@
+{
+  "rateLimits": {
+    "limitId": "codex",
+    "planType": "prolite",
+    "primary": {"usedPercent": 100, "windowDurationMins": 300, "resetsAt": 1793612059},
+    "secondary": null
+  }
+}

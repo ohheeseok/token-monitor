@@ -1,0 +1,78 @@
+{
+  "accountId": "<redacted>",
+  "ordinaryUsageAllowed": true,
+  "rateLimitResetCredits": {
+    "availableCount": 2,
+    "credits": [
+      {
+        "description": "Thanks for using Codex! You've been granted one free rate limit reset.",
+        "expiresAt": 1796071302,
+        "grantedAt": 1793479302,
+        "id": "<redacted>",
+        "resetType": "codexRateLimits",
+        "status": "available",
+        "title": "Full reset (Weekly + 5 hr)"
+      },
+      {
+        "description": "Thanks for using Codex! You've been granted one free rate limit reset.",
+        "expiresAt": 1796163665,
+        "grantedAt": 1793571665,
+        "id": "<redacted>",
+        "resetType": "codexRateLimits",
+        "status": "available",
+        "title": "Full reset (Weekly + 5 hr)"
+      }
+    ]
+  },
+  "rateLimitUpsell": null,
+  "rateLimits": {
+    "credits": {
+      "balance": "0",
+      "hasCredits": false,
+      "unlimited": false
+    },
+    "individualLimit": null,
+    "limitId": "codex",
+    "limitName": null,
+    "normalModelSlug": null,
+    "planType": "plus",
+    "primary": {
+      "resetsAt": 1793612059,
+      "usedPercent": 10,
+      "windowDurationMins": 300
+    },
+    "rateLimitReachedType": null,
+    "secondary": {
+      "resetsAt": 1794088989,
+      "usedPercent": 27,
+      "windowDurationMins": 10080
+    },
+    "spendControlReached": false
+  },
+  "rateLimitsByLimitId": {
+    "codex": {
+      "credits": {
+        "balance": "0",
+        "hasCredits": false,
+        "unlimited": false
+      },
+      "individualLimit": null,
+      "limitId": "codex",
+      "limitName": null,
+      "normalModelSlug": null,
+      "planType": "plus",
+      "primary": {
+        "resetsAt": 1793612059,
+        "usedPercent": 10,
+        "windowDurationMins": 300
+      },
+      "rateLimitReachedType": null,
+      "secondary": {
+        "resetsAt": 1794088989,
+        "usedPercent": 27,
+        "windowDurationMins": 10080
+      },
+      "spendControlReached": false
+    }
+  }
+}
