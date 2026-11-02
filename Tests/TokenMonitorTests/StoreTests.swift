@@ -102,3 +102,21 @@ import TokenMonitorCore
         #expect(store.refresh(off.id, reason: .manual) == nil)
     }
 }
+
+@MainActor
+@Suite struct MenuBarSummaryTests {
+    @Test func peakIgnoresStaleAndDisabledAccounts() async {
+        let fresh = AccountConfig(id: "a", kind: .codex, label: "A")
+        let off = AccountConfig(id: "b", kind: .codex, label: "B", enabled: false)
+        let snapshotA = UsageSnapshot(windows: [UsageWindow(id: "w", label: "wk", usedPercent: 40, resetsAt: nil, windowMinutes: 10080)],
+                                      fetchedAt: referenceNow)
+        let snapshotB = UsageSnapshot(windows: [UsageWindow(id: "w", label: "wk", usedPercent: 95, resetsAt: nil, windowMinutes: 10080)],
+                                      fetchedAt: referenceNow)
+        let store = UsageStore(accounts: [fresh, off], cache: nil, now: { referenceNow }, random: { 0.5 }) { account in
+            ImmediateProvider(result: .success(account.id == "a" ? snapshotA : snapshotB))
+        }
+        await store.refresh("a", reason: .manual)?.value
+        #expect(MenuBarSummary.peak(store: store, now: referenceNow) == 40)
+        #expect(MenuBarSummary.peak(store: store, now: referenceNow.addingTimeInterval(3600)) == nil)
+    }
+}

@@ -30,6 +30,28 @@ enum SnapshotRenderer {
                 print(url.path)
             }
         }
+        let settingsFile = AccountsFile(url: FileManager.default.temporaryDirectory.appendingPathComponent("tm-demo-accounts.json"))
+        let model = SettingsModel(store: store, file: settingsFile, onSaved: {})
+        model.openRouterKeyStatus = .verified("확인됨 · 사용액 $23.16")
+        for account in store.accounts where account.kind == .claude {
+            model.claudeStatus[account.id] = account.claudeConfigDir == "~/.claude-old" ? .missing : .found
+        }
+        for scheme in [ColorScheme.dark, .light] {
+            let name = "settings-\(scheme == .dark ? "dark" : "light").png"
+            write(SettingsView(model: model, previewOnly: true).environment(\.colorScheme, scheme),
+                  appearance: scheme == .dark ? .darkAqua : .aqua, to: directory.appendingPathComponent(name))
+        }
         return 0
+    }
+
+    private static func write(_ view: some View, appearance: NSAppearance.Name, to url: URL) {
+        let host = NSHostingView(rootView: view)
+        host.appearance = NSAppearance(named: appearance)
+        host.frame = NSRect(origin: .zero, size: host.fittingSize)
+        host.layoutSubtreeIfNeeded()
+        guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { return }
+        host.cacheDisplay(in: host.bounds, to: rep)
+        try? rep.representation(using: .png, properties: [:])?.write(to: url)
+        print(url.path)
     }
 }

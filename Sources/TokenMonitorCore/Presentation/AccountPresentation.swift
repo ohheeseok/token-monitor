@@ -195,3 +195,16 @@ public enum UsageFormat {
         }
     }
 }
+
+public enum MenuBarSummary {
+    /// Highest used percent among enabled accounts with fresh data; nil when nothing is fresh.
+    /// Stale numbers are left out so the menu bar never shows an old figure as current.
+    @MainActor
+    public static func peak(store: UsageStore, now: Date) -> Double? {
+        store.enabledAccounts.compactMap { account -> Double? in
+            let state = store.state(for: account.id)
+            guard !store.policy.isStale(state, kind: account.kind, now: now) else { return nil }
+            return state.lastGood?.windows.map(\.usedPercent).max()
+        }.max()
+    }
+}

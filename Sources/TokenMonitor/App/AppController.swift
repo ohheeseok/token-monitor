@@ -1,4 +1,5 @@
 import AppKit
+import Observation
 import SwiftUI
 import TokenMonitorCore
 
@@ -11,6 +12,11 @@ final class AppController: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var accountsModified: Date?
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let popover = NSPopover()
+    private var isTrackingStore = false
+    private lazy var settings = SettingsWindowController(model: SettingsModel(
+        store: store, file: accountsFile,
+        onSaved: { [weak self] in self?.accountsModified = self.flatMap { $0.modificationDate(of: $0.accountsFile.url) } }
+    ))
 
     init(demo: Bool) {
         if demo {
@@ -50,6 +56,46 @@ final class AppController: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             MainActor.assumeIsolated { self?.store.refreshAll(reason: .wake) }
         }
         store.start()
+        updateStatusItem()
+        NotificationCenter.default.addObserver(
+            forName: UserDefaults.didChangeNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.updateStatusItem() }
+        }
+    }
+
+    // MARK: Menu bar title
+
+    /// Shows the highest fresh usage next to the icon when enabled. The store read is tracked with
+    /// Observation; exactly one tracking registration is kept alive and renewed after it fires.
+    private func updateStatusItem() {
+        let style = MenuBarStyle(rawValue: UserDefaults.standard.string(forKey: "menuBarStyle") ?? "") ?? .icon
+        let read = { [store] in MenuBarSummary.peak(store: store, now: Date()) }
+        let currentPeak: Double?
+        if isTrackingStore {
+            currentPeak = read()
+        } else {
+            isTrackingStore = true
+            currentPeak = withObservationTracking(read) { [weak self] in
+                Task { @MainActor in
+                    self?.isTrackingStore = false
+                    self?.updateStatusItem()
+                }
+            }
+        }
+        let peak = style == .iconAndPercent ? currentPeak : nil
+        guard let button = statusItem.button else { return }
+        if let peak {
+            let color: NSColor = peak >= 90 ? .systemRed : (peak >= 70 ? .systemOrange : .labelColor)
+            button.attributedTitle = NSAttributedString(string: " \(UsageFormat.percent(peak))", attributes: [
+                .font: NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .medium),
+                .foregroundColor: color,
+            ])
+            button.imagePosition = .imageLeading
+        } else {
+            button.attributedTitle = NSAttributedString(string: "")
+            button.imagePosition = .imageOnly
+        }
     }
 
     @objc private func statusItemClicked(_ sender: NSStatusBarButton) {
@@ -101,13 +147,9 @@ final class AppController: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         NSWorkspace.shared.open(url)
     }
 
-    /// Until the settings window exists (M4), accounts are edited in accounts.json.
     private func manageAccounts() {
         popover.performClose(nil)
-        if !FileManager.default.fileExists(atPath: accountsFile.url.path) {
-            try? accountsFile.save(store.accounts)
-        }
-        NSWorkspace.shared.open(accountsFile.url)
+        settings.show()
     }
 
     private func reloadAccountsIfEdited() {
