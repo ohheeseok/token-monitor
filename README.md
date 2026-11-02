@@ -55,4 +55,6 @@ swift run TokenMonitor --demo                # 데모 데이터로 앱 실행
 
 설계와 진행 기록은 [PLAN.md](PLAN.md)에 있다.
 
-OpenRouter 아이콘(`Sources/TokenMonitor/Resources/openrouter.png`)은 openrouter.ai 파비콘이며 상표권은 OpenRouter에 있다. 다른 서비스 아이콘은 설치된 각 앱에서 실행 시점에 가져온다.
+## 라이선스
+
+[MIT](LICENSE). 단, OpenRouter 아이콘(`Sources/TokenMonitor/Resources/openrouter.png`)은 openrouter.ai 파비콘이며 상표권은 OpenRouter에 있어 이 라이선스에 포함되지 않는다. 다른 서비스 아이콘은 저장소에 없고, 설치된 각 앱에서 실행 시점에 가져온다.
