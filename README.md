@@ -2,6 +2,10 @@
 
 AI 코딩 서비스의 사용량을 한곳에서 보여 주는 macOS 메뉴바 앱. Orca의 "사용량" 패널을 따라 만들었다. 메뉴바 아이콘을 누르면 반투명 팝오버가 열리고, 압축/상세 두 가지 보기로 서비스별 사용률과 초기화까지 남은 시간을 보여 준다.
 
+<p align="center">
+  <img src="docs/screenshot.png" width="400" alt="상세 보기: Codex, Antigravity, Claude 두 계정, OpenRouter의 사용률과 잔액 (데모 데이터)">
+</p>
+
 | 서비스 | 가져오는 방법 | 표시 |
 |---|---|---|
 | ChatGPT Codex | `codex app-server` (JSON-RPC, `account/rateLimits/read`) | 5시간·주간 사용률 |

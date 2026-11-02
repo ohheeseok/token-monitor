@@ -45,9 +45,9 @@ enum DemoData {
             ], plan: "pro", fetchedAt: now))
         case "openrouter":
             return .success(UsageSnapshot(money: MoneyUsage(
-                currency: "USD", spent: Decimal(string: "23.16")!, limit: nil, remaining: nil, limitReset: nil,
+                currency: "USD", spent: Decimal(string: "12.48")!, limit: nil, remaining: nil, limitReset: nil,
                 spentToday: Decimal(string: "0.42")!, spentThisWeek: Decimal(string: "3.10")!, spentThisMonth: Decimal(string: "11.87")!,
-                creditsPurchased: 40, creditsUsed: Decimal(string: "23.19")!
+                creditsPurchased: 50, creditsUsed: Decimal(string: "12.60")!
             ), fetchedAt: now))
         default:
             return .failure(.expiredCredentials)

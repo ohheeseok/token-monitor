@@ -35,7 +35,7 @@ public struct AccountPresentation: Sendable, Identifiable, Hashable {
     /// Detail header: "4h 59m 후 초기화".
     public var resetText: String?
     public var lines: [Line]
-    /// OpenRouter: "잔액 $16.81 · 충전 $40.00", "이 키 $23.16 사용 · 한도 없음" and period breakdown.
+    /// OpenRouter: "잔액 $37.40 · 충전 $50.00", "이 키 $12.48 사용 · 한도 없음" and period breakdown.
     public var moneyLines: [String]
     /// Problem shown in place of (or below) data, e.g. "로그인 만료".
     public var statusText: String?

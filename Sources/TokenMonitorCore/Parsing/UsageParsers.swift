@@ -171,7 +171,7 @@ package enum UsageParsers {
         return UsageSnapshot(windows: windows, money: money, plan: (key["is_free_tier"] as? Bool) == true ? "free" : nil, fetchedAt: now)
     }
 
-    /// `GET /api/v1/credits`: `{"data": {"total_credits": 40, "total_usage": 23.19}}`.
+    /// `GET /api/v1/credits`: `{"data": {"total_credits": 50, "total_usage": 12.6}}`.
     package static func openRouterCredits(_ data: Data) throws(ProviderFailure) -> (purchased: Decimal, used: Decimal) {
         guard let body = try object(data)["data"] as? JSON,
               let purchased = decimal(body["total_credits"]), let used = decimal(body["total_usage"])
