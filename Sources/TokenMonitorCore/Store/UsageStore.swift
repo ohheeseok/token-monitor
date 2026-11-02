@@ -1,11 +1,16 @@
 import Foundation
 import Observation
+import os
 
 /// Owns every account's state and the single place where refreshes are decided and applied.
 /// All triggers (launch, timer, popover, manual, wake) go through `refresh(_:reason:)`.
 @MainActor
 @Observable
 public final class UsageStore {
+    /// Refresh history for multi-day checks: `log show --last 1d --predicate 'subsystem == "com.heeseok.tokenmonitor" and process == "TokenMonitor"'`.
+    /// Only account ids, reasons and failure kinds are logged, never tokens or response bodies.
+    static let log = Logger(subsystem: "com.heeseok.tokenmonitor", category: "refresh")
+
     public private(set) var accounts: [AccountConfig]
     public private(set) var states: [String: AccountState] = [:]
 
@@ -80,6 +85,7 @@ public final class UsageStore {
         guard policy.shouldRefresh(state(for: id), reason: reason, now: started) else { return nil }
 
         let generation = generations[id, default: 0]
+        Self.log.notice("refresh \(id, privacy: .public) reason=\(String(describing: reason), privacy: .public)")
         states[id, default: AccountState()].isRefreshing = true
         states[id]?.lastAttemptAt = started
 
@@ -107,8 +113,15 @@ public final class UsageStore {
         switch result {
         case .success(let snapshot):
             policy.applySuccess(snapshot, to: &state, kind: account.kind, now: now(), random: random())
+            Self.log.notice("ok \(account.id, privacy: .public)")
         case .failure(let failure):
             policy.applyFailure(failure, to: &state, now: now(), random: random())
+            let next = state.nextDueAt?.ISO8601Format() ?? "-"
+            let notBefore = state.notBefore?.ISO8601Format() ?? "-"
+            Self.log.notice("""
+                failed \(account.id, privacy: .public) \(String(describing: failure), privacy: .public) \
+                attempt=\(state.consecutiveFailures) next=\(next, privacy: .public) notBefore=\(notBefore, privacy: .public)
+                """)
         }
         states[account.id] = state
         cache?.save(states, accounts: accounts)

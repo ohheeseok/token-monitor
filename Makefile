@@ -1,6 +1,6 @@
 APP := $(HOME)/Applications/TokenMonitor.app
 
-.PHONY: build test bundle install dev probe clean
+.PHONY: build test bundle install dev fetch log clean
 
 build:
 	swift build
@@ -17,8 +17,11 @@ install:
 dev: install
 	open "$(APP)"
 
-probe: install
-	"$(APP)/Contents/MacOS/TokenMonitor" --probe $(PROBE_ARGS)
+fetch:
+	"$(APP)/Contents/MacOS/TokenMonitor" --fetch
+
+log:
+	log show --last 1d --style compact --predicate 'subsystem == "com.heeseok.tokenmonitor" and process == "TokenMonitor"'
 
 clean:
 	rm -rf .build build

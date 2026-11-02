@@ -33,6 +33,8 @@ public actor ClaudeProvider: UsageProvider {
 
     public func fetch(now: Date) async throws(ProviderFailure) -> UsageSnapshot {
         var credential = try await credential()
+        // A token past its expiry only earns 401s (or 429s, seen live); wait for Claude Code to renew it.
+        if let expiresAt = credential.expiresAt, expiresAt <= clock() { throw .expiredCredentials }
         var (data, response) = try await get(Self.usageURL, token: credential.accessToken)
         if response.statusCode == 401 {
             let reread = try await self.credential()

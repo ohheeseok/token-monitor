@@ -38,6 +38,20 @@ private final class CredentialSequence: @unchecked Sendable {
         #expect(transport.requests.count == 1)
     }
 
+    @Test func tokenPastExpiryIsNotSent() async {
+        let transport = FakeTransport([(200, [:], usage)])
+        let expired = ClaudeCredentials.Credential(
+            accessToken: "A", expiresAt: referenceNow.addingTimeInterval(-1), subscriptionType: "pro", source: "test"
+        )
+        let provider = ClaudeProvider(
+            configDir: nil, transport: transport, readCredential: { _ in expired }, clock: { referenceNow }
+        )
+        await #expect(throws: ProviderFailure.expiredCredentials) {
+            try await provider.fetch(now: referenceNow)
+        }
+        #expect(transport.requests.isEmpty)
+    }
+
     @Test func retriesOnceWhenClaudeCodeRenewedTheToken() async throws {
         let transport = FakeTransport([(401, [:], Data()), (200, [:], usage), (200, [:], profile)])
         let sequence = CredentialSequence(["old", "new"])
