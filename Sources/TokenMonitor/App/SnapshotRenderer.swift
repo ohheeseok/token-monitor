@@ -32,7 +32,7 @@ enum SnapshotRenderer {
         }
         let settingsFile = AccountsFile(url: FileManager.default.temporaryDirectory.appendingPathComponent("tm-demo-accounts.json"))
         let model = SettingsModel(store: store, file: settingsFile, onSaved: {})
-        model.openRouterKeyStatus = .verified("확인됨 · 사용액 $23.16")
+        model.openRouterKeyStatus = .verified("확인됨 · 잔액 $16.81")
         for account in store.accounts where account.kind == .claude {
             model.claudeStatus[account.id] = account.claudeConfigDir == "~/.claude-old" ? .missing : .found
         }

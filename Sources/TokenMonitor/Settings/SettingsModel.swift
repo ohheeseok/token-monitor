@@ -153,8 +153,11 @@ final class SettingsModel {
         }
         do throws(ProviderFailure) {
             let snapshot = try await OpenRouterProvider(transport: URLSessionTransport()).fetch(now: Date())
-            let spent = snapshot.money.map { UsageFormat.money($0.spent, currency: $0.currency) } ?? "-"
-            openRouterKeyStatus = .verified("확인됨 · 사용액 \(spent)")
+            let summary = snapshot.money.map { money in
+                money.creditsRemaining.map { "잔액 \(UsageFormat.money($0, currency: money.currency))" }
+                    ?? "사용액 \(UsageFormat.money(money.spent, currency: money.currency))"
+            } ?? "-"
+            openRouterKeyStatus = .verified("확인됨 · \(summary)")
         } catch {
             openRouterKeyStatus = .failed("저장했지만 확인에 실패했습니다: \(UsageFormat.failure(error, now: Date()))")
         }

@@ -119,6 +119,22 @@ private final class CredentialSequence: @unchecked Sendable {
         let b = try await OpenRouterProvider(transport: FakeTransport([(200, [:], data)])) { "key-b" }.fetch(now: referenceNow)
         #expect(a.identity != nil && a.identity != b.identity)
     }
+
+    @Test func addsAccountBalanceFromCredits() async throws {
+        let transport = FakeTransport([
+            (200, [:], Fixture.data("openrouter-key-unlimited")), (200, [:], Fixture.data("openrouter-credits")),
+        ])
+        let snapshot = try await OpenRouterProvider(transport: transport) { "key" }.fetch(now: referenceNow)
+        #expect(snapshot.money?.creditsRemaining == Decimal(string: "16.809116311"))
+        #expect(transport.requests.map(\.url?.path) == ["/api/v1/key", "/api/v1/credits"])
+    }
+
+    @Test func balanceFailureKeepsKeyNumbers() async throws {
+        let transport = FakeTransport([(200, [:], Fixture.data("openrouter-key")), (429, [:], Data())])
+        let snapshot = try await OpenRouterProvider(transport: transport) { "key" }.fetch(now: referenceNow)
+        #expect(snapshot.money?.spent == Decimal(string: "17.55"))
+        #expect(snapshot.money?.creditsRemaining == nil)
+    }
 }
 
 @Suite struct AppKeychainTests {

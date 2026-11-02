@@ -103,8 +103,8 @@ Orca의 "사용량" 패널을 독립 실행형 macOS 메뉴바 앱으로 만든�
 - 화면에는 사용률로 표시한다(`1 − remaining_fraction`). Orca는 "Remaining"이라는 라벨에 사용률을 표시해 헷갈린다.
 
 **OpenRouter**
-- v1은 일반 API 키 하나로 `/key`만 조회한다(`usage`, `limit`, `limit_remaining`, 일·주·월 사용액). `limit == null`이면 "한도 없음"으로 표시하고 0과 구분한다. 금액은 `Decimal`로 다룬다.
-- 계정 전체 잔액(`/credits`)은 management key가 필요하므로 v2로 미룬다.
+- 일반 API 키 하나로 `/key`를 조회한다(`usage`, `limit`, `limit_remaining`, 일·주·월 사용액). `limit == null`이면 "한도 없음"으로 표시하고 0과 구분한다. 금액은 `Decimal`로 다룬다.
+- 계정 전체 잔액은 `/credits`(`total_credits`, `total_usage`)로 조회한다. 처음에는 management key가 필요하다고 보고 미뤘으나, 2026-11-02에 일반 키로도 200이 오는 것을 확인했다. 잔액 = `total_credits − total_usage`. 이 호출이 실패해도 `/key` 값은 그대로 표시한다.
 
 ## 2. 앱 구조
 
@@ -191,7 +191,7 @@ TokenMonitor/
 
 - Claude OAuth 로그인 직접 구현 (정책 위반 소지 + refresh token 충돌)
 - Codex app-server 상주 연결
-- OpenRouter management key / 계정 잔액
+- OpenRouter management key
 - 사용량 기록 저장과 차트 (하단 메뉴는 대시보드 링크로 대체)
 - 갱신 주기 사용자 설정
 - Cursor (사용하지 않음)

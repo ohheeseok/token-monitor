@@ -67,4 +67,17 @@ import TokenMonitorCore
         #expect(item.resetText == "1h 후 초기화")
         #expect(!item.isStale)
     }
+
+    @Test func openRouterLeadsWithAccountBalance() {
+        var state = AccountState()
+        state.lastGood = UsageSnapshot(money: MoneyUsage(
+            currency: "USD", spent: Decimal(string: "23.16")!, limit: nil, remaining: nil,
+            creditsPurchased: 40, creditsUsed: Decimal(string: "23.19")!
+        ), fetchedAt: referenceNow)
+        state.lastSuccessAt = referenceNow
+        let account = AccountConfig(id: "o", kind: .openRouter, label: "OpenRouter")
+        let item = AccountPresentation.make(account: account, state: state, policy: policy, now: referenceNow)
+        #expect(item.compactTrailing == "$16.81 남음")
+        #expect(item.moneyLines == ["잔액 $16.81 · 충전 $40.00", "이 키 $23.16 사용 · 한도 없음"])
+    }
 }

@@ -35,7 +35,7 @@ public struct AccountPresentation: Sendable, Identifiable, Hashable {
     /// Detail header: "4h 59m 후 초기화".
     public var resetText: String?
     public var lines: [Line]
-    /// OpenRouter: "$23.16 사용 · 한도 없음" and period breakdown.
+    /// OpenRouter: "잔액 $16.81 · 충전 $40.00", "이 키 $23.16 사용 · 한도 없음" and period breakdown.
     public var moneyLines: [String]
     /// Problem shown in place of (or below) data, e.g. "로그인 만료".
     public var statusText: String?
@@ -65,7 +65,10 @@ public struct AccountPresentation: Sendable, Identifiable, Hashable {
             subtitle: subtitle,
             compactTrailing: tightest.map { window in
                 window.resetsAt.map { UsageFormat.countdown(to: $0, now: now) } ?? window.label
-            } ?? snapshot?.money.map { UsageFormat.money($0.spent, currency: $0.currency) },
+            } ?? snapshot?.money.map { money in
+                money.creditsRemaining.map { "\(UsageFormat.money($0, currency: money.currency)) 남음" }
+                    ?? UsageFormat.money(money.spent, currency: money.currency)
+            },
             compactPercent: tightest.map { UsageFormat.percent($0.usedPercent) },
             compactSeverity: tightest.map { UsageFormat.severity($0.usedPercent) } ?? .normal,
             resetText: resetWindow(windows).flatMap(\.resetsAt).map { "\(UsageFormat.countdown(to: $0, now: now)) 후 초기화" },
@@ -114,7 +117,11 @@ public struct AccountPresentation: Sendable, Identifiable, Hashable {
     static func moneyLines(_ money: MoneyUsage) -> [String] {
         let spent = UsageFormat.money(money.spent, currency: money.currency)
         let limit = money.limit.map { "한도 \(UsageFormat.money($0, currency: money.currency))" } ?? "한도 없음"
-        var lines = ["\(spent) 사용 · \(limit)"]
+        var lines: [String] = []
+        if let remaining = money.creditsRemaining, let purchased = money.creditsPurchased {
+            lines.append("잔액 \(UsageFormat.money(remaining, currency: money.currency)) · 충전 \(UsageFormat.money(purchased, currency: money.currency))")
+        }
+        lines.append("\(lines.isEmpty ? "" : "이 키 ")\(spent) 사용 · \(limit)")
         let periods = [("오늘", money.spentToday), ("이번 주", money.spentThisWeek), ("이번 달", money.spentThisMonth)]
             .compactMap { name, value in value.map { "\(name) \(UsageFormat.money($0, currency: money.currency))" } }
         if !periods.isEmpty { lines.append(periods.joined(separator: " · ")) }

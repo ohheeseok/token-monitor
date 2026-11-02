@@ -112,4 +112,10 @@ import TokenMonitorCore
         #expect(snapshot.money?.usedPercent == nil)
         #expect(snapshot.windows.isEmpty)
     }
+
+    @Test func readsAccountCredits() throws {
+        let credits = try UsageParsers.openRouterCredits(Fixture.data("openrouter-credits"))
+        #expect(credits.purchased == 40)
+        #expect(credits.used == Decimal(string: "23.190883689"))
+    }
 }

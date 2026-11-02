@@ -64,9 +64,13 @@ public struct MoneyUsage: Codable, Sendable, Hashable {
     public var spentToday: Decimal?
     public var spentThisWeek: Decimal?
     public var spentThisMonth: Decimal?
+    /// Account-wide credits (`/credits`): everything purchased, and everything used by all keys.
+    public var creditsPurchased: Decimal?
+    public var creditsUsed: Decimal?
 
     public init(currency: String, spent: Decimal, limit: Decimal?, remaining: Decimal?, limitReset: String? = nil,
-                spentToday: Decimal? = nil, spentThisWeek: Decimal? = nil, spentThisMonth: Decimal? = nil) {
+                spentToday: Decimal? = nil, spentThisWeek: Decimal? = nil, spentThisMonth: Decimal? = nil,
+                creditsPurchased: Decimal? = nil, creditsUsed: Decimal? = nil) {
         self.currency = currency
         self.spent = spent
         self.limit = limit
@@ -75,6 +79,14 @@ public struct MoneyUsage: Codable, Sendable, Hashable {
         self.spentToday = spentToday
         self.spentThisWeek = spentThisWeek
         self.spentThisMonth = spentThisMonth
+        self.creditsPurchased = creditsPurchased
+        self.creditsUsed = creditsUsed
+    }
+
+    /// Account balance left to spend; nil when `/credits` was not available.
+    public var creditsRemaining: Decimal? {
+        guard let creditsPurchased, let creditsUsed else { return nil }
+        return creditsPurchased - creditsUsed
     }
 
     /// Share of the current limit period that is used. Derived from `limit - remaining`, not from
