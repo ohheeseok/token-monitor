@@ -37,12 +37,12 @@ public struct CodexProvider: UsageProvider {
     }
 }
 
-/// Antigravity quota through `agy -p /usage`. Only CLI versions we have verified answer `/usage`
-/// as a command; older ones send it to the model as a prompt and spend quota, so anything
-/// unverified is refused before execution. If a verified version ever replies as a prompt anyway,
-/// the provider disables itself for the rest of the app session.
+/// Antigravity quota through `agy -p /usage`. Versions before 1.4.12 send `/usage` to the model as a
+/// prompt and spend quota, so they are refused before execution. agy updates itself often, so later
+/// 1.x versions are accepted (1.4.12 and 1.5.2 checked by hand); if one ever replies as a prompt,
+/// the provider disables itself for the rest of the app session. A new major version is refused.
 public struct AntigravityProvider: UsageProvider {
-    public static let verifiedVersions: Set<String> = ["1.4.12"]
+    public static let minimumVersion = [1, 4, 12]
     static let tripped = Flag()
 
     public init() {}
@@ -55,7 +55,7 @@ public struct AntigravityProvider: UsageProvider {
 
         let version = try await run(agy, ["--version"], env: env, timeout: .seconds(5))
             .stdoutString.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard Self.verifiedVersions.contains(version) else { throw .unsupportedVersion("agy \(version)") }
+        guard Self.isSupported(version) else { throw .unsupportedVersion("agy \(version)") }
 
         let result = try await run(
             agy, ["-p", "/usage", "--output-format", "json", "--print-timeout", "20s"], env: env, timeout: .seconds(30)
@@ -78,5 +78,13 @@ public struct AntigravityProvider: UsageProvider {
         } catch {
             throw .cliUnavailable("agy failed to launch")
         }
+    }
+
+    /// Plain `major.minor.patch` with the same major as `minimumVersion` and not below it.
+    /// Anything else (pre-release suffixes, extra text) is refused.
+    public static func isSupported(_ version: String) -> Bool {
+        let parts = version.split(separator: ".", omittingEmptySubsequences: false).map { Int($0) }
+        guard parts.count == 3, let numbers = parts as? [Int], numbers[0] == minimumVersion[0] else { return false }
+        return numbers.lexicographicallyPrecedes(minimumVersion) == false
     }
 }

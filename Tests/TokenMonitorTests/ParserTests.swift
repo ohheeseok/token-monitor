@@ -72,6 +72,21 @@ import TokenMonitorCore
         #expect(Set(snapshot.windows.compactMap(\.group)) == ["Gemini Models", "Claude and GPT models", "Gemini 4 Argon"])
     }
 
+    @Test func agy152OutputParsesTheSame() throws {
+        let data = Fixture.data("agy-usage-1.5.2")
+        #expect(UsageParsers.antigravityAnsweredAsCommand(data))
+        let snapshot = try UsageParsers.antigravity(data, now: referenceNow)
+        #expect(snapshot.windows.count == 5)
+        #expect(Set(snapshot.windows.compactMap(\.group)) == ["Gemini Models", "Claude and GPT models", "Gemini 4 Argon"])
+    }
+
+    @Test func acceptsLaterOneXVersionsOnly() {
+        for ok in ["1.4.12", "1.4.13", "1.5.2", "1.10.0"] { #expect(AntigravityProvider.isSupported(ok), "\(ok)") }
+        for no in ["1.4.11", "1.3.99", "0.9.0", "2.0.0", "1.5", "1.5.2-beta", "agy 1.5.2", ""] {
+            #expect(!AntigravityProvider.isSupported(no), "\(no)")
+        }
+    }
+
     @Test func refusesAReplyThatSpentATurn() {
         #expect(throws: ProviderFailure.self) {
             try UsageParsers.antigravity(Fixture.data("agy-prompt-reply"), now: referenceNow)

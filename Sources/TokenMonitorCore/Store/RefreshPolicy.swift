@@ -65,6 +65,7 @@ public struct RefreshPolicy: Sendable {
     public func applyFailure(_ failure: ProviderFailure, to state: inout AccountState, now: Date, random: Double) {
         state.failure = failure
         state.consecutiveFailures += 1
+        if let notBefore = state.notBefore, notBefore <= now { state.notBefore = nil }
         switch failure {
         case .rateLimited(let retryAt):
             let until = max(retryAt ?? .distantPast, now.addingTimeInterval(backoff(state.consecutiveFailures)))

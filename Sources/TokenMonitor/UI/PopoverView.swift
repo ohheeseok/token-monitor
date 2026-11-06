@@ -25,10 +25,7 @@ struct PopoverView: View {
     }
 
     private var items: [AccountPresentation] {
-        let date = now()
-        return store.enabledAccounts.map {
-            AccountPresentation.make(account: $0, state: store.state(for: $0.id), policy: store.policy, now: date)
-        }
+        AccountPresentation.makeAll(store: store, now: now())
     }
 
     private func content(items: [AccountPresentation]) -> some View {

@@ -81,6 +81,25 @@ public struct AccountPresentation: Sendable, Identifiable, Hashable {
         )
     }
 
+    /// Builds every row, then flags rows whose last data came from the same login as another row of
+    /// the same kind (e.g. two Claude config dirs signed into one account), which otherwise looks like
+    /// two accounts with suspiciously equal numbers.
+    @MainActor
+    public static func makeAll(store: UsageStore, now: Date) -> [AccountPresentation] {
+        let accounts = store.enabledAccounts
+        var items = accounts.map { make(account: $0, state: store.state(for: $0.id), policy: store.policy, now: now) }
+        let identities = accounts.map { store.state(for: $0.id).lastGood?.identity }
+        for i in items.indices {
+            guard let identity = identities[i],
+                  let other = items.indices.first(where: { $0 != i && items[$0].kind == items[i].kind && identities[$0] == identity })
+            else { continue }
+            let note = "\(items[other].title)와 같은 계정"
+            items[i].statusText = items[i].statusText.map { "\($0) · \(note)" } ?? note
+            items[i].subtitle = items[i].subtitle.map { "\($0) · \(note)" } ?? note
+        }
+        return items
+    }
+
     /// The reset users care about first: the shortest (5h) window, else the earliest reset.
     static func resetWindow(_ windows: [UsageWindow]) -> UsageWindow? {
         windows.filter { $0.resetsAt != nil }

@@ -120,3 +120,22 @@ import TokenMonitorCore
         #expect(MenuBarSummary.peak(store: store, now: referenceNow.addingTimeInterval(3600)) == nil)
     }
 }
+
+@MainActor @Suite struct DuplicateLoginTests {
+    @Test func twoClaudeSlotsOnOneLoginAreFlagged() async {
+        let accounts = [
+            AccountConfig(id: "c1", kind: .claude, label: "Claude"),
+            AccountConfig(id: "c2", kind: .claude, label: "Claude 2", claudeConfigDir: "~/.claude-2"),
+            AccountConfig(id: "x", kind: .codex, label: "Codex"),
+        ]
+        let snapshot = UsageSnapshot(identity: "same", fetchedAt: referenceNow)
+        let store = UsageStore(accounts: accounts, cache: nil, now: { referenceNow }, random: { 0.5 }) { _ in
+            ImmediateProvider(result: .success(snapshot))
+        }
+        for account in accounts { await store.refresh(account.id, reason: .manual)?.value }
+        let items = AccountPresentation.makeAll(store: store, now: referenceNow)
+        #expect(items[0].statusText == "Claude 2와 같은 계정")
+        #expect(items[1].statusText == "Claude와 같은 계정")
+        #expect(items[2].statusText == nil)  // same fingerprint, different kind
+    }
+}

@@ -26,6 +26,15 @@ import TokenMonitorCore
         #expect(state.notBefore == referenceNow.addingTimeInterval(60))
     }
 
+    @Test func passedCooldownIsDroppedByALaterFailureButALiveOneIsKept() {
+        var state = AccountState()
+        policy.applyFailure(.rateLimited(retryAt: referenceNow.addingTimeInterval(600)), to: &state, now: referenceNow, random: 0)
+        policy.applyFailure(.expiredCredentials, to: &state, now: referenceNow.addingTimeInterval(300), random: 0)
+        #expect(state.notBefore == referenceNow.addingTimeInterval(600))
+        policy.applyFailure(.expiredCredentials, to: &state, now: referenceNow.addingTimeInterval(601), random: 0)
+        #expect(state.notBefore == nil)
+    }
+
     @Test func timerWaitsForJitteredInterval() {
         var state = AccountState()
         policy.applySuccess(snapshot, to: &state, kind: .claude, now: referenceNow, random: 0.5)
